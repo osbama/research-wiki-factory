@@ -2,7 +2,7 @@
 # ====================================
 
 # Topics to process.
-# Simple form (each topic uses default inbox ~/research/inbox/<topic>):
+# Simple form (each topic uses default inbox ~/Prog/research-wiki-factory/inbox/<topic>):
 #   topics: [llm-agents]
 #
 # Mapping form (recommended for multiple topics) — per-topic options:
@@ -11,7 +11,7 @@
 #   seed_queries: extra S2 keyword queries for the sweep (optional)
 topics:
   llm-agents:
-    # inbox: ~/research/inbox/llm-agents   # default; override example below
+    # inbox: ~/Prog/research-wiki-factory/inbox/llm-agents   # default; override example below
     # seed_queries: ["LLM agents tool use", "multi-agent LLM systems"]
 
 # Example with a second topic sharing one big PDF library:
@@ -44,13 +44,13 @@ attanger_pattern:
 
 # Zotero export path
 zotero:
-  exports_dir: "~/research/zotero/exports"
+  exports_dir: "~/Prog/research-wiki-factory/zotero/exports"
   # Export filename pattern: wiki-<topic>.bib
 
 # Inbox directory
 inbox:
-  base_dir: "~/research/inbox"
+  base_dir: "~/Prog/research-wiki-factory/inbox"
 
 # Wiki output directory
 wiki:
-  base_dir: "~/research/wikis"
+  base_dir: "~/Prog/research-wiki-factory/wikis"

@@ -42,7 +42,8 @@ except ImportError:
 
 def get_ingested_keys_path(topic: str, config: dict) -> str:
     """Get path to ingested-keys.json for a topic (lives in _meta/)."""
-    wiki_path = Path("~/research/wikis").expanduser() / topic
+    from wf_common import get_research_root
+    wiki_path = Path(get_research_root()) / "wikis" / topic
     meta = wiki_path / "_meta"
     if meta.exists():
         return str(meta / "ingested-keys.json")

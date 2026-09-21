@@ -5,7 +5,7 @@
 | | Path | Purpose |
 |---|---|---|
 | Source (this repo) | `~/source/auto-LLMRAG/` | Canonical code, docs, plugin, skill, config template. Git-tracked. |
-| Runtime (deployment) | `~/research/` | Live wikis, inbox, bibs, embeddings, kanban state. NOT in git. |
+| Runtime (deployment) | `~/Prog/research-wiki-factory/` | Live wikis, inbox, bibs, embeddings, kanban state. NOT in git. |
 | Profile integration | `~/.hermes/profiles/<profile>/` | Installed plugin + skill + cron jobs. |
 
 Deploy with `source/deploy.sh <profile>` (rsync repo → runtime + profile).
@@ -13,7 +13,7 @@ Deploy with `source/deploy.sh <profile>` (rsync repo → runtime + profile).
 ## Runtime Layout
 
 ```
-~/research/
+~/Prog/research-wiki-factory/
   wiki-factory.yaml          # live config (endpoints, topics, thresholds)
   scripts/                   # deployed copy of source/scripts/
   zotero/exports/wiki-<t>.bib  # Better BibTeX auto-export (READ-ONLY)

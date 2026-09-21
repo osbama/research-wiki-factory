@@ -6,8 +6,8 @@ Usage:
     python wf_init.py <topic>
 
 Creates:
-- ~/research/wikis/<topic>/
-- ~/research/inbox/<topic>/
+- ~/Prog/research-wiki-factory/wikis/<topic>/
+- ~/Prog/research-wiki-factory/inbox/<topic>/
 - Kanban board via 'hermes kanban boards create wiki-<topic>'
 """
 

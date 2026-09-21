@@ -56,3 +56,12 @@ canonical source in `source/` (deployments are copies), conventional
 commits with tests green, fleet changes user-confirmed + documented in
 `servers/`, docs updated with code, no host specifics or secrets in
 source, semver + tagged zip builds. License: GPL.
+
+### 2026-07-23 (later) — Deployment root moved; deploy-first workflow (R7)
+- Runtime root moved from `~/research` to `~/Prog/research-wiki-factory`.
+  All runtime data (scripts, wikis, inbox, zotero exports, candidates,
+  state) lives under that single directory. `wf_common.get_research_root()`
+  resolves it: env `WIKI_FACTORY_ROOT` overrides the default.
+- R7 (deploy-first workflow): new changes are implemented in the
+  deployment directory first, tested there, and only after explicit user
+  confirmation are they sanitized and committed to the source repo.

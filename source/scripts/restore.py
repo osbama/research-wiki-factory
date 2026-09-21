@@ -28,7 +28,8 @@ from wf_common import load_config, get_wiki_path
 
 def get_ingested_keys_path(topic: str, config: dict) -> str:
     """Get path to ingested-keys.json for a topic."""
-    wiki_path = Path("~/research/wikis").expanduser() / topic
+    from wf_common import get_research_root
+    wiki_path = Path(get_research_root()) / "wikis" / topic
     return str(wiki_path / "ingested-keys.json")
 
 

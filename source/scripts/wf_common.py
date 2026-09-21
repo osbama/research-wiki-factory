@@ -29,12 +29,30 @@ class PDFMatch:
     reason: str = ""
 
 
-def load_config(config_path: str = "~/research/wiki-factory.yaml") -> Dict[str, Any]:
-    """Load configuration from YAML file."""
+def get_research_root() -> str:
+    """Root directory of the deployment (runtime data lives here).
+
+    Resolution order:
+    1. WIKI_FACTORY_ROOT environment variable
+    2. Default: ~/Prog/research-wiki-factory
+    """
+    return os.environ.get(
+        "WIKI_FACTORY_ROOT",
+        str(Path("~/Prog/research-wiki-factory").expanduser())
+    )
+
+
+def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
+    """Load configuration from YAML file.
+
+    Default path: <research_root>/wiki-factory.yaml
+    """
+    if config_path is None:
+        config_path = str(Path(get_research_root()) / "wiki-factory.yaml")
     path = Path(config_path).expanduser()
     if not path.exists():
         raise FileNotFoundError(f"Config file not found: {path}")
-    
+
     with open(path, 'r') as f:
         return yaml.safe_load(f)
 
@@ -347,7 +365,8 @@ def match_pdf_to_citekey(
 
 def get_zotero_export_path(topic: str, config: Dict[str, Any]) -> str:
     """Get the path to Zotero export file for a topic."""
-    exports_dir = config.get("zotero", {}).get("exports_dir", "~/research/zotero/exports")
+    exports_dir = config.get("zotero", {}).get(
+        "exports_dir", str(Path(get_research_root()) / "zotero" / "exports"))
     return str(Path(exports_dir).expanduser() / f"wiki-{topic}.bib")
 
 
@@ -367,7 +386,8 @@ def get_inbox_path(topic: str, config: Dict[str, Any]) -> str:
         for item in topics_cfg:
             if isinstance(item, dict) and item.get("name") == topic and item.get("inbox"):
                 return str(Path(item["inbox"]).expanduser())
-    base_dir = config.get("inbox", {}).get("base_dir", "~/research/inbox")
+    base_dir = config.get("inbox", {}).get(
+        "base_dir", str(Path(get_research_root()) / "inbox"))
     return str(Path(base_dir).expanduser() / topic)
 
 
@@ -387,5 +407,6 @@ def get_topics(config: Dict[str, Any]) -> List[str]:
 
 def get_wiki_path(topic: str, config: Dict[str, Any]) -> str:
     """Get the wiki directory path for a topic."""
-    base_dir = config.get("wiki", {}).get("base_dir", "~/research/wikis")
+    base_dir = config.get("wiki", {}).get(
+        "base_dir", str(Path(get_research_root()) / "wikis"))
     return str(Path(base_dir).expanduser() / topic)

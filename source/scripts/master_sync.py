@@ -29,7 +29,7 @@ from typing import Dict, List, Any, Optional, Tuple
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from wf_common import load_config, get_wiki_path
+from wf_common import get_research_root, load_config, get_wiki_path
 
 
 def parse_index_sections(index_path: Path) -> Dict[str, int]:
@@ -277,7 +277,7 @@ def master_sync(config: dict) -> None:
     print(f"Topics: {topics}")
     
     # Create _master directory
-    wiki_base = Path(config.get("wiki", {}).get("base_dir", "~/research/wikis")).expanduser()
+    wiki_base = Path(config.get("wiki", {}).get("base_dir", str(Path(get_research_root()) / "wikis"))).expanduser()
     master_path = wiki_base / "_master"
     master_path.mkdir(parents=True, exist_ok=True)
     

@@ -44,11 +44,11 @@ cd ~/source/auto-LLMRAG
 ## 2. Configure
 
 ```bash
-mkdir -p ~/research
-cp source/wiki-factory.yaml ~/research/wiki-factory.yaml
+mkdir -p ~/Prog/research-wiki-factory
+cp source/wiki-factory.yaml ~/Prog/research-wiki-factory/wiki-factory.yaml
 ```
 
-Edit `~/research/wiki-factory.yaml`:
+Edit `~/Prog/research-wiki-factory/wiki-factory.yaml`:
 - `litellm.base_url` → your proxy (`http://<host>:<port>/v1/`)
 - `litellm.embedding_model` → your served model id
 - `topics:` → your first topic name (mapping form; see inline comments)
@@ -64,14 +64,14 @@ echo 'SEMANTIC_SCHOLAR_API_KEY=<your-key>' >> ~/.hermes/profiles/<profile>/.env
 bash source/deploy.sh <profile>
 ```
 
-This rsyncs scripts → `~/research/scripts/`, plugin →
+This rsyncs scripts → `~/Prog/research-wiki-factory/scripts/`, plugin →
 `~/.hermes/profiles/<profile>/plugins/wiki-factory/`, skill →
 `~/.hermes/profiles/<profile>/skills/research/research-wiki-factory/`,
 and enables the plugin in the profile config (idempotent).
 
 Verify:
 ```bash
-python3 ~/research/scripts/test_wf_common.py     # 15 tests OK
+python3 ~/Prog/research-wiki-factory/scripts/test_wf_common.py     # 15 tests OK
 hermes -p <profile> skills list | grep research-wiki-factory
 ```
 
@@ -79,17 +79,17 @@ hermes -p <profile> skills list | grep research-wiki-factory
 
 1. Create a Zotero collection for the topic (e.g. `Wiki/llm-agents`).
 2. Better BibTeX → Preferences → Automatic export → add the collection,
-   format BibTeX, path `~/research/zotero/exports/wiki-<topic>.bib`,
+   format BibTeX, path `~/Prog/research-wiki-factory/zotero/exports/wiki-<topic>.bib`,
    "on change".
 3. Attanger: set rename pattern
    `{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}`
-   and destination `~/research/inbox/<topic>/` (or one shared library —
+   and destination `~/Prog/research-wiki-factory/inbox/<topic>/` (or one shared library —
    the watcher scans recursively and matches by bib).
 
 ## 5. Initialize the topic
 
 ```bash
-python3 ~/research/scripts/wf_init.py <topic>   # dirs + kanban board
+python3 ~/Prog/research-wiki-factory/scripts/wf_init.py <topic>   # dirs + kanban board
 ```
 
 ## 6. Scheduled jobs (optional but recommended)
@@ -98,11 +98,11 @@ Under the pipeline profile:
 
 ```bash
 hermes -p <profile> cron create "0 6 * * *" \
-  "Run the daily Semantic Scholar literature sweep for all topics in ~/research/wiki-factory.yaml: for each topic run 'python3 ~/research/scripts/s2_sweep.py <topic>'. Log to ~/research/state/." \
+  "Run the daily Semantic Scholar literature sweep for all topics in ~/Prog/research-wiki-factory/wiki-factory.yaml: for each topic run 'python3 ~/Prog/research-wiki-factory/scripts/s2_sweep.py <topic>'. Log to ~/Prog/research-wiki-factory/state/." \
   --name wiki-factory-daily-sweep --deliver local --skill research-wiki-factory
 
 hermes -p <profile> cron create "0 8 * * 0" \
-  "Weekly wiki maintenance: run coverage_audit.py per topic, then master_sync.py. Log to ~/research/state/." \
+  "Weekly wiki maintenance: run coverage_audit.py per topic, then master_sync.py. Log to ~/Prog/research-wiki-factory/state/." \
   --name wiki-factory-weekly --deliver local --skill research-wiki-factory
 ```
 
@@ -116,11 +116,11 @@ with `hermes -p <profile>` (or use the profile alias). The bib watcher runs
 only while at least one session of that profile is open.
 
 - New suggestions: kanban board `hermes -p <profile> kanban --board wiki-<topic> list`
-  and `~/research/candidates/<topic>-new.bib`.
+  and `~/Prog/research-wiki-factory/candidates/<topic>-new.bib`.
 - Import the candidates bib into Zotero, drag keepers into the topic
   collection. While any session of the profile is open, the watcher
   ingests automatically (ingest cards appear within seconds).
-- Check watcher health: `tail ~/research/state/bibwatch-<topic>.log`.
+- Check watcher health: `tail ~/Prog/research-wiki-factory/state/bibwatch-<topic>.log`.
 
 ## Uninstall
 
@@ -128,5 +128,5 @@ only while at least one session of that profile is open.
 rm -rf ~/.hermes/profiles/<profile>/plugins/wiki-factory \
        ~/.hermes/profiles/<profile>/skills/research/research-wiki-factory
 # remove 'wiki-factory' from plugins.enabled in the profile config.yaml
-# runtime data in ~/research/ is yours to keep or delete
+# runtime data in ~/Prog/research-wiki-factory/ is yours to keep or delete
 ```

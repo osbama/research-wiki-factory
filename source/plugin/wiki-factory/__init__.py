@@ -1,7 +1,7 @@
 """wiki-factory plugin — profile-scoped BibTeX watcher lifecycle.
 
 Starts one ``bibwatch.py --watch`` process per topic configured in
-~/research/wiki-factory.yaml when the FIRST researcher-profile session
+~/Prog/research-wiki-factory/wiki-factory.yaml when the FIRST researcher-profile session
 starts, and stops them when the LAST session ends.
 
 Design:
@@ -9,7 +9,7 @@ Design:
   lives in ~/.hermes/profiles/researcher/plugins/.
 - Watcher processes are detached (start_new_session=True) so they
   survive the session; a refcounted lockfile
-  (~/research/state/bibwatch.json) tracks how many live sessions rely on
+  (~/Prog/research-wiki-factory/state/bibwatch.json) tracks how many live sessions rely on
   them. Last session out kills the watchers.
 - Crash-safe: on start, stale lockfile entries (dead PIDs) are pruned;
   if watchers are already running and healthy, they are NOT restarted.
@@ -32,7 +32,7 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-RESEARCH_ROOT = Path.home() / "research"
+RESEARCH_ROOT = Path.home() / "Prog" / "research-wiki-factory"
 SCRIPTS_DIR = RESEARCH_ROOT / "scripts"
 STATE_DIR = RESEARCH_ROOT / "state"
 LOCKFILE = STATE_DIR / "bibwatch.json"

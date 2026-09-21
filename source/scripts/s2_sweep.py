@@ -28,7 +28,7 @@ from typing import Dict, List, Any, Optional, Set
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from wf_common import load_config, get_wiki_path, get_zotero_export_path, load_bibtex_file
+from wf_common import get_research_root, load_config, get_wiki_path, get_zotero_export_path, load_bibtex_file
 from wf_common import SemanticScholarClient, extract_first_creator
 
 
@@ -321,7 +321,7 @@ def s2_sweep(topic: str, seed_citekeys: list, config: dict) -> None:
     print(f"Tracking {len(seen_paperids)} previously offered papers")
     
     # Create candidates directory
-    candidates_dir = Path("~/research/candidates").expanduser()
+    candidates_dir = Path(get_research_root()) / "candidates"
     candidates_dir.mkdir(parents=True, exist_ok=True)
     candidates_path = candidates_dir / f"{topic}-new.bib"
     

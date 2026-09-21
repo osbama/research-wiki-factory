@@ -104,7 +104,7 @@ Full instructions: `source/INSTALL.md`. The daily rhythm after setup:
 
 1. **Morning:** check the kanban board for new candidate cards
    (`hermes -p <profile> kanban --board wiki-<topic> list`).
-2. **In Zotero:** import `~/research/candidates/<topic>-new.bib`,
+2. **In Zotero:** import `~/Prog/research-wiki-factory/candidates/<topic>-new.bib`,
    drag keepers into the topic collection. Attanger downloads and
    renames PDFs automatically.
 3. **That's it.** While any session of the profile is open, the watcher
@@ -125,8 +125,8 @@ file at runtime.
 | # | Credential / Account | Required? | Where it goes | What it's for |
 |---|---|---|---|---|
 | 1 | **Semantic Scholar API key** (free: https://www.semanticscholar.org/product/api#api-key-form) | Recommended — without it the sweep works but hits aggressive rate limits (429s) | `SEMANTIC_SCHOLAR_API_KEY` in `~/.hermes/profiles/<profile>/.env` | Literature sweep: citation chase + recommendations |
-| 2 | **Embedding endpoint** (OpenAI-compatible `/v1/embeddings`; e.g. LiteLLM proxy serving `qwen3-embedding-8b`) | Required | `litellm.base_url` + `litellm.embedding_model` in `~/research/wiki-factory.yaml` | All verification: hallucination check, coverage audit, query fallback |
-| 3 | **Embedding endpoint auth** (if your server needs a key) | Only if your endpoint requires it | `litellm.api_key` in `~/research/wiki-factory.yaml` (or env `LITELLM_API_KEY`) | Same as above |
+| 2 | **Embedding endpoint** (OpenAI-compatible `/v1/embeddings`; e.g. LiteLLM proxy serving `qwen3-embedding-8b`) | Required | `litellm.base_url` + `litellm.embedding_model` in `~/Prog/research-wiki-factory/wiki-factory.yaml` | All verification: hallucination check, coverage audit, query fallback |
+| 3 | **Embedding endpoint auth** (if your server needs a key) | Only if your endpoint requires it | `litellm.api_key` in `~/Prog/research-wiki-factory/wiki-factory.yaml` (or env `LITELLM_API_KEY`) | Same as above |
 | 4 | **Zotero + Better BibTeX + attanger** (desktop apps/plugins, not API keys) | Required | Installed and configured by the user (see INSTALL.md §4) | The curation gate and PDF fetching/renaming |
 | 5 | **LLM provider for Hermes itself** (e.g. OpenRouter key) | Required by Hermes, not this project | Standard Hermes profile setup | Running the agents/workers that process kanban cards |
 
@@ -137,7 +137,7 @@ Semantic Scholar is the only external API called.
 
 ```
 ~/source/auto-LLMRAG/     ← this repo (code + docs, git-tracked)
-~/research/               ← runtime: wikis, inbox, bibs, embeddings
+~/Prog/research-wiki-factory/               ← runtime: wikis, inbox, bibs, embeddings
 ~/.hermes/profiles/<p>/   ← installed plugin, skill, cron jobs
 ```
 

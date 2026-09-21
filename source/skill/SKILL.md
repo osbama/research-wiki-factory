@@ -14,16 +14,16 @@ metadata:
 
 # Research Wiki Factory
 
-Operate the Zotero-gated research wiki pipeline at `~/research/`.
+Operate the Zotero-gated research wiki pipeline at `~/Prog/research-wiki-factory/`.
 
 **Core invariant:** nothing enters a topic wiki unless its citekey is present
-in that topic's Zotero Better BibTeX export (`~/research/zotero/exports/wiki-<topic>.bib`).
+in that topic's Zotero Better BibTeX export (`~/Prog/research-wiki-factory/zotero/exports/wiki-<topic>.bib`).
 The user curates in Zotero; the pipeline reacts.
 
 ## Layout
 
 ```
-~/research/
+~/Prog/research-wiki-factory/
   wiki-factory.yaml          # topics (mapping), litellm, s2, attanger config
   scripts/                   # all pipeline scripts (system python3)
   zotero/exports/wiki-<topic>.bib   # Better BibTeX auto-export (READ-ONLY)
@@ -72,8 +72,8 @@ The user curates in Zotero; the pipeline reacts.
 
 The `wiki-factory` plugin (profile-scoped) starts `bibwatch.py --watch` for
 every configured topic when the first researcher session starts and stops them
-when the last session ends. State: `~/research/state/bibwatch.json`.
-Check watcher health: `tail ~/research/state/bibwatch-<topic>.log`.
+when the last session ends. State: `~/Prog/research-wiki-factory/state/bibwatch.json`.
+Check watcher health: `tail ~/Prog/research-wiki-factory/state/bibwatch-<topic>.log`.
 
 ## Pitfalls
 

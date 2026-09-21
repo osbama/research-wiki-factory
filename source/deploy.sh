@@ -7,7 +7,7 @@ set -euo pipefail
 PROFILE="${1:?usage: deploy.sh <profile>}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROFILE_DIR="$HOME/.hermes/profiles/$PROFILE"
-RESEARCH="$HOME/research"
+RESEARCH="$HOME/Prog/research-wiki-factory"
 
 [ -d "$PROFILE_DIR" ] || { echo "error: profile '$PROFILE' not found at $PROFILE_DIR"; exit 1; }
 
