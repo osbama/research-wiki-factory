@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+
+# Runtime artifacts (never commit)
+*.npz
+embeddings_meta.json
+ingested-keys.json
+seen-paperids.json
+withdraw-log.json
+coverage-report.md
+*.log
+state/
+
+# Secrets
+.env
+*.key
+
+# User data
+wiki-*.bib
+candidates/
+*.pdf
+
+# OS
+.DS_Store

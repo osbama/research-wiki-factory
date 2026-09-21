@@ -1,0 +1,53 @@
+# Research Wiki Factory Configuration
+# ====================================
+
+# Topics to process.
+# Simple form (each topic uses default inbox ~/research/inbox/<topic>):
+#   topics: [llm-agents]
+#
+# Mapping form (recommended for multiple topics) — per-topic options:
+#   inbox:        override inbox dir; point it at a shared library dir and
+#                 the watcher will pick matching papers out of it (recursively)
+#   seed_queries: extra S2 keyword queries for the sweep (optional)
+topics:
+  llm-agents:
+    # inbox: ~/research/inbox/llm-agents   # default; override example below
+    # seed_queries: ["LLM agents tool use", "multi-agent LLM systems"]
+
+# Example with a second topic sharing one big PDF library:
+# topics:
+#   llm-agents:
+#     inbox: ~/ZoteroLibrary
+#   mechanistic-interpretability:
+#     inbox: ~/ZoteroLibrary
+#     seed_queries: ["mechanistic interpretability transformer circuits"]
+
+# Litellm configuration
+litellm:
+  base_url: "http://YOUR-LITELLM-HOST:4000/v1/"
+  embedding_model: "qwen3-embedding-8b"
+  embedding_dim: 4096
+
+# Semantic Scholar configuration
+semantic_scholar:
+  citation_cap: 25
+
+# Attanger PDF naming pattern
+# Pattern: {{ firstCreator suffix=' - ' }}{{ year suffix=' - ' }}{{ title truncate='100' }}
+attanger_pattern:
+  first_creator_suffix: " - "
+  year_suffix: " - "
+  title_truncate: 100
+
+# Zotero export path
+zotero:
+  exports_dir: "~/research/zotero/exports"
+  # Export filename pattern: wiki-<topic>.bib
+
+# Inbox directory
+inbox:
+  base_dir: "~/research/inbox"
+
+# Wiki output directory
+wiki:
+  base_dir: "~/research/wikis"

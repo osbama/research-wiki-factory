@@ -1,0 +1,7 @@
+name: wiki-factory
+version: 1.0.0
+description: "Research Wiki Factory: starts the per-topic BibTeX watcher (bibwatch.py) when a researcher-profile session starts, stops it when the last session ends. Refcounted PID lock in ~/research/state/."
+author: "Hermes Agent (for obm)"
+hooks:
+  - on_session_start
+  - on_session_end
