@@ -42,7 +42,7 @@ class TestPDFToCitekeyMatcher(unittest.TestCase):
                     "title": "Attention Is All You Need",
                     "author": "Vaswani, Ashish and Shazeer, Noam",
                     "year": "2017",
-                    "file": "/home/obm/Zotero/storage/ABC/Vaswani - 2017 - Attention Is All You Need.pdf:application/pdf"
+                    "file": "/home/user/Zotero/storage/ABC/Vaswani - 2017 - Attention Is All You Need.pdf:application/pdf"
                 }
             }
         }

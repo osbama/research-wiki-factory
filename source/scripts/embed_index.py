@@ -107,32 +107,36 @@ def embed_batch(
     """
     base_url = config.get("litellm", {}).get("base_url", "http://localhost:4000/v1/")
     model = config.get("litellm", {}).get("embedding_model", "qwen3-embedding-8b")
-    
+    # Optional auth: config litellm.api_key, else env LITELLM_API_KEY, else none.
+    api_key = config.get("litellm", {}).get("api_key") or os.environ.get("LITELLM_API_KEY")
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+
     # Prepare texts
     if is_query:
         texts = [QUERY_PREFIX + text for text in texts]
-    
+
     # Batch embedding
     batch_size = 32
     all_embeddings = []
-    
+
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i + batch_size]
-        
+
         # Retry logic
         max_retries = 3
         for attempt in range(max_retries):
             try:
                 import requests
-                
+
                 payload = {
                     "model": model,
                     "input": batch
                 }
-                
+
                 response = requests.post(
                     f"{base_url}embeddings",
                     json=payload,
+                    headers=headers,
                     timeout=60
                 )
                 response.raise_for_status()

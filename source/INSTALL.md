@@ -11,6 +11,15 @@ Deploys the Research Wiki Factory onto a Hermes setup. Tested on Linux
 - A LiteLLM (or any OpenAI-compatible) endpoint serving an embedding model
   (default `qwen3-embedding-8b`, 4096-dim).
 - System packages: `pdftotext` (poppler-utils), git.
+- Credentials (**to be filled by you** — the repo ships none):
+  1. `SEMANTIC_SCHOLAR_API_KEY` — free key from
+     https://www.semanticscholar.org/product/api#api-key-form
+     (recommended; without it the sweep works but is heavily rate-limited)
+  2. An OpenAI-compatible embedding endpoint (e.g. LiteLLM proxy serving
+     `qwen3-embedding-8b`) — you provide its URL/model in the config
+  3. If that endpoint requires auth, its API key as well
+  4. Your normal Hermes LLM provider credentials (e.g. OpenRouter) —
+     part of standard Hermes profile setup, not this project
 - Python deps (system python3, user site is fine):
   ```bash
   python3 -m ensurepip --user   # only if pip is missing

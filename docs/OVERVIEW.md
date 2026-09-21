@@ -116,7 +116,24 @@ Full instructions: `source/INSTALL.md`. The daily rhythm after setup:
    the paper is soft-withdrawn (files archived, embeddings excluded,
    citing pages flagged) and can be restored with one command.
 
-## 6. Where Things Live
+## 6. Required API Keys & Accounts
+
+Everything below is **to be filled by the user**. The repo contains no
+credentials — scripts read them from environment variables or the config
+file at runtime.
+
+| # | Credential / Account | Required? | Where it goes | What it's for |
+|---|---|---|---|---|
+| 1 | **Semantic Scholar API key** (free: https://www.semanticscholar.org/product/api#api-key-form) | Recommended — without it the sweep works but hits aggressive rate limits (429s) | `SEMANTIC_SCHOLAR_API_KEY` in `~/.hermes/profiles/<profile>/.env` | Literature sweep: citation chase + recommendations |
+| 2 | **Embedding endpoint** (OpenAI-compatible `/v1/embeddings`; e.g. LiteLLM proxy serving `qwen3-embedding-8b`) | Required | `litellm.base_url` + `litellm.embedding_model` in `~/research/wiki-factory.yaml` | All verification: hallucination check, coverage audit, query fallback |
+| 3 | **Embedding endpoint auth** (if your server needs a key) | Only if your endpoint requires it | `litellm.api_key` in `~/research/wiki-factory.yaml` (or env `LITELLM_API_KEY`) | Same as above |
+| 4 | **Zotero + Better BibTeX + attanger** (desktop apps/plugins, not API keys) | Required | Installed and configured by the user (see INSTALL.md §4) | The curation gate and PDF fetching/renaming |
+| 5 | **LLM provider for Hermes itself** (e.g. OpenRouter key) | Required by Hermes, not this project | Standard Hermes profile setup | Running the agents/workers that process kanban cards |
+
+No cloud accounts are otherwise needed. All wiki data stays local;
+Semantic Scholar is the only external API called.
+
+## 7. Where Things Live
 
 ```
 ~/source/auto-LLMRAG/     ← this repo (code + docs, git-tracked)
