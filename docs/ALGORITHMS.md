@@ -101,3 +101,32 @@ Structure-only sync (no LLM prose): per topic, parse index.md + last 30
 log.md lines → `_master/concepts/<topic>.md` (page counts, recent activity,
 links to 5 newest pages) + `_master/index.md` + log. Synthesis prose is a
 human/agent task layered on top.
+
+## 8. Backup & Transfer (`backup.py` / `restore_backup.py`)
+
+Goal: a deployment's artifacts must be portable to another machine.
+
+Backup (`backup.py`):
+1. Collects wiki-factory.yaml + wikis/, candidates/, zotero/, inbox/, state/
+   (the irreplaceable human-curated data). Scripts are EXCLUDED — code comes
+   from the source repo via deploy.sh on the target machine.
+2. Secret hygiene: files matching secret patterns (.env/.key/credentials/
+   secret/token/api_key) are skipped and reported, never archived.
+3. Every file is sha256-hashed into an embedded backup-manifest.json
+   (format, version, created_at, epoch, host, file list).
+4. Output: backups/backup-YYYYmmdd-HHMMSS.tar.gz.
+
+Restore (`restore_backup.py <file.tar.gz>`):
+1. Validation chain: gzip tar → manifest present → format check →
+   per-file sha256 → path-traversal guard → secret-pattern refusal.
+   Any failure rejects the whole archive (exit 1).
+2. Timestamp rule: if the LOCAL deployment's newest artifact is newer than
+   the backup's epoch, restore aborts (newer state is never silently
+   overwritten). --force overrides with a warning.
+3. Extraction is confined to the deployment root; scripts/ is untouched.
+4. Named restore_backup.py to avoid collision with paper-level restore.py.
+
+Portability flow: backup on machine A → copy tar.gz to machine B →
+deploy scripts from the repo → restore_backup.py → re-point Zotero
+exports; keys/credentials are provisioned on B separately, never
+transferred.

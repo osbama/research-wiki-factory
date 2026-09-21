@@ -65,3 +65,10 @@ source, semver + tagged zip builds. License: GPL.
 - R7 (deploy-first workflow): new changes are implemented in the
   deployment directory first, tested there, and only after explicit user
   confirmation are they sanitized and committed to the source repo.
+
+### 2026-07-23 (later still) — Backup & transfer feature
+- backup.py / restore_backup.py: portable tar.gz backups of deployment
+  artifacts (never scripts, never secrets), sha256 manifest, timestamp
+  rule (newer local state aborts restore; --force overrides), traversal
+  and secret-pattern rejection. Live-tested with an 11-case battery
+  including crafted evil archives.

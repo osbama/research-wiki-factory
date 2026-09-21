@@ -58,6 +58,7 @@ Semantic Scholar ──s2_sweep──> candidates/<t>-new.bib + kanban cards
 | wiki_query_fallback.py | script | on demand |
 | withdraw.py / restore.py | scripts | watcher detects bib removal / manual |
 | master_sync.py | script | weekly cron |
+| backup.py / restore_backup.py | scripts | manual (transfer between machines) |
 | wiki-factory plugin | Hermes plugin | profile session start/end |
 | research-wiki-factory | skill | loaded by agents working the pipeline |
 

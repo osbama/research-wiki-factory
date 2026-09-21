@@ -122,6 +122,28 @@ only while at least one session of that profile is open.
   ingests automatically (ingest cards appear within seconds).
 - Check watcher health: `tail ~/Prog/research-wiki-factory/state/bibwatch-<topic>.log`.
 
+## 8. Backup & transfer to another machine
+
+```bash
+# On machine A:
+python3 ~/Prog/research-wiki-factory/scripts/backup.py
+# -> ~/Prog/research-wiki-factory/backups/backup-<timestamp>.tar.gz
+
+# Copy the tar.gz to machine B (scp/usb/…). On machine B:
+#   1. deploy from the repo first (steps 1-5 above) to get scripts
+#   2. then restore:
+python3 ~/Prog/research-wiki-factory/scripts/restore_backup.py backup-<timestamp>.tar.gz
+```
+
+- The script validates the archive (manifest, per-file sha256,
+  path-traversal and secret checks) and refuses anything malformed.
+- If machine B already has NEWER artifacts, restore aborts — pass
+  `--force` only when you really want the backup to overwrite them.
+- API keys and credentials are never inside backups; provision them on
+  the new machine separately (see §0).
+- Zotero on machine B must re-point its Better BibTeX auto-export to the
+  new machine's `zotero/exports/` path.
+
 ## Uninstall
 
 ```bash

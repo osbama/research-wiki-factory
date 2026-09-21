@@ -115,6 +115,9 @@ Full instructions: `source/INSTALL.md`. The daily rhythm after setup:
 5. **Changed your mind?** Remove the entry from the Zotero collection;
    the paper is soft-withdrawn (files archived, embeddings excluded,
    citing pages flagged) and can be restored with one command.
+6. **Moving machines?** `backup.py` packs the deployment into a
+   timestamped, secret-free tar.gz; `restore_backup.py` validates and
+   installs it on the new machine (see INSTALL.md §8).
 
 ## 6. Required API Keys & Accounts
 
