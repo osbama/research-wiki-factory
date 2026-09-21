@@ -8,6 +8,7 @@ local LiteLLM embedding server. Cross-topic master wiki included.
 
 License: GPL-3.0-or-later. See LICENSE.
 
+- docs/OVERVIEW.md — start here: what it does, how, and the daily workflow
 - docs/ALGORITHMS.md — how every component works
 - docs/PLAN.md — approved design decisions
 - docs/ARCHITECTURE.md — layout, data flow, formats
