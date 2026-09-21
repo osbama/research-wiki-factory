@@ -5,8 +5,15 @@ Deploys the Research Wiki Factory onto a Hermes setup. Tested on Linux
 
 ## 0. Prerequisites
 
-- Hermes Agent (`hermes --version`), plus a profile to host the pipeline
-  (e.g. `hermes profile create researcher`).
+- Hermes Agent (`hermes --version`), plus a **dedicated Hermes profile** to
+  host the pipeline. A separate profile is required, not optional: the
+  wiki-factory plugin is profile-scoped so the bib watcher only runs while
+  sessions of THAT profile are active — your everyday profile stays clean.
+  Create and verify one (we use `researcher` throughout; any name works):
+  ```bash
+  hermes profile create researcher
+  hermes profile list          # should show the new profile
+  ```
 - Zotero with **Better BibTeX** and **Attanger** plugins.
 - A LiteLLM (or any OpenAI-compatible) endpoint serving an embedding model
   (default `qwen3-embedding-8b`, 4096-dim).
@@ -103,6 +110,10 @@ Note: cron fires only while `hermes gateway` runs (or trigger manually:
 `hermes -p <profile> cron run <id>`).
 
 ## 7. Daily use
+
+All pipeline interaction goes through the dedicated profile: prefix commands
+with `hermes -p <profile>` (or use the profile alias). The bib watcher runs
+only while at least one session of that profile is open.
 
 - New suggestions: kanban board `hermes -p <profile> kanban --board wiki-<topic> list`
   and `~/research/candidates/<topic>-new.bib`.
