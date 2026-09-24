@@ -104,3 +104,11 @@ source, semver + tagged zip builds. License: GPL.
   hijacks, system-prompt probes, tool-call tokens, image exfil URLs,
   and AI-reviewer manipulation. Verified end-to-end with a crafted
   malicious PDF.
+
+### 2026-07-23 (later) — Corrupt-PDF handling
+- repair_pdf.py ported from learn_and_teach (pdfimages real-probe,
+  gs rewrite + re-detect + atomic replace, tolerate-and-register in
+  _meta/corrupt_pdfs.json). Ingest gate: no-text PDFs abort ingest and
+  file an idempotent repair-pdf kanban card instead of silently
+  creating empty notes/embeddings. Whitespace-only pdftotext output
+  (blank pages emit form feeds) treated as empty.

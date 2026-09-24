@@ -30,6 +30,31 @@ from wf_common import (
 )
 
 
+def create_repair_card(topic: str, citekey: str, pdf_path: str) -> str:
+    """File a repair-pdf kanban card (idempotent via idempotency key)."""
+    import subprocess as _sp
+    board = f"wiki-{topic}"
+    key = f"repair-pdf:{citekey}"
+    body = (f"PDF for `{citekey}` yielded no text on extraction "
+            f"(corrupt or scanned).\n\n"
+            f"Path: `{pdf_path}`\n\n"
+            f"To fix: `python3 repair_pdf.py {topic} --file '{pdf_path}'` "
+            f"(ghostscript rewrite; tolerated corruption is registered in "
+            f"_meta/corrupt_pdfs.json). Then re-run the ingest.")
+    cmd = ["hermes", "kanban", "--board", board, "create",
+           f"repair-pdf: {citekey}",
+           "--body", body,
+           "--idempotency-key", key]
+    try:
+        r = _sp.run(cmd, capture_output=True, text=True, timeout=60)
+        if r.returncode == 0:
+            return key
+        print(f"  Warning: kanban card failed: {r.stderr.strip()[:200]}")
+    except FileNotFoundError:
+        print("  Warning: hermes CLI not found; repair card not created")
+    return key
+
+
 def get_ingested_keys_path(topic: str, config: dict) -> str:
     """Get path to ingested-keys.json for a topic."""
     from wf_common import get_research_root
@@ -265,13 +290,22 @@ def ingest_paper(topic: str, citekey: str, config: dict) -> None:
     # Extract text from PDF
     print("Extracting text from PDF...")
     extracted_text = extract_text_from_pdf(str(pdf_dest))
+    if extracted_text and not extracted_text.strip():
+        extracted_text = ""  # blank pages yield form-feed whitespace only
     if extracted_text:
         print(f"  Extracted {len(extracted_text)} characters")
         _, n_hits = sanitize_extracted_text(extracted_text)
         if n_hits:
             print(f"  SECURITY: {n_hits} possible injection span(s) neutralized")
     else:
-        print("  No text extracted")
+        # No text layer: likely corrupt or scanned. Offer repair via a
+        # kanban card and abort — an empty note + empty embeddings is
+        # worse than no note. Re-run ingest after repair.
+        print("  No text extracted — PDF may be corrupt or scanned.")
+        card_id = create_repair_card(topic, citekey, str(pdf_dest))
+        print(f"  Repair offered via kanban card {card_id}; "
+              f"ingest aborted (re-run after repair).")
+        return
     
     # Create note markdown
     print(f"Creating note: {citekey}.md")

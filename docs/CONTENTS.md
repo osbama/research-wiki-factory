@@ -39,6 +39,7 @@
             |-- withdraw.py        soft-archive a paper (+embedding flag)
             |-- restore.py         undo a paper withdrawal
             |-- master_sync.py     cross-topic master wiki (stats only)
+            |-- repair_pdf.py      corrupt-PDF detect/gs-repair/tolerate
             |-- backup.py          timestamped tar.gz of artifacts
             |                      (sha256 manifest, no code, no secrets)
             |-- restore_backup.py  validate + install a backup
