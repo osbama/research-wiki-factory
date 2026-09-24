@@ -94,3 +94,13 @@ source, semver + tagged zip builds. License: GPL.
   failed on every 2-author paper.
 - BBT case-protection braces stripped in the bib parser; field parser
   handles nested braces (depth 3).
+
+### 2026-07-23 (later) — Prompt-injection defense for parsed documents
+- Two layers. Layer 1 (framing): SECURITY NOTE headers on paper notes
+  (trusted: false frontmatter) and query-evidence pages; snippets
+  backtick-escaped. Layer 2 (scrubbing): ingest-time neutralization of
+  injection-pattern lines with visible markers, hit count in
+  frontmatter + ingest log. Patterns cover instruction overrides, role
+  hijacks, system-prompt probes, tool-call tokens, image exfil URLs,
+  and AI-reviewer manipulation. Verified end-to-end with a crafted
+  malicious PDF.
