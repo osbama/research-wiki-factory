@@ -24,23 +24,19 @@ topics:
 
 # Litellm configuration
 litellm:
-  # TO BE FILLED BY USER: your OpenAI-compatible embedding endpoint.
   base_url: "http://YOUR-LITELLM-HOST:4000/v1/"
   embedding_model: "qwen3-embedding-8b"
   embedding_dim: 4096
-  # TO BE FILLED BY USER (only if your endpoint requires auth):
-  # api_key: "<your-embedding-endpoint-key>"   # or set env LITELLM_API_KEY
 
 # Semantic Scholar configuration
 semantic_scholar:
   citation_cap: 25
 
-# Attanger PDF naming pattern
-# Pattern: {{ firstCreator suffix=' - ' }}{{ year suffix=' - ' }}{{ title truncate='100' }}
+# Attanger/Zotero file renaming template (Zotero 7 syntax, paste verbatim
+# from Zotero settings -> General -> Filename Format). Single-quoted YAML
+# scalar: double quotes inside need no escaping.
 attanger_pattern:
-  first_creator_suffix: " - "
-  year_suffix: " - "
-  title_truncate: 100
+  rename_template: '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}'
 
 # Zotero export path
 zotero:

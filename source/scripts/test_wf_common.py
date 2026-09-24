@@ -28,9 +28,7 @@ class TestPDFToCitekeyMatcher(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.pattern_config = {
-            "first_creator_suffix": " - ",
-            "year_suffix": " - ",
-            "title_truncate": 100
+            "rename_template": '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}'
         }
     
     def test_exact_match_with_file_field(self):
@@ -208,21 +206,19 @@ class TestGenerateAttangerFilename(unittest.TestCase):
         self.assertEqual(result, "Vaswani - 2017 - Attention Is All You Need")
     
     def test_title_truncation(self):
-        """Test that long titles are truncated."""
+        """Test that long titles are truncated (truncate lives in the template)."""
         pattern_config = {
-            "first_creator_suffix": " - ",
-            "year_suffix": " - ",
-            "title_truncate": 20
+            "rename_template": '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="20" }}'
         }
-        
+
         creators = [{"name": "Author, Name"}]
         title = "This Is A Very Long Title That Should Be Truncated"
         year = 2024
-        
+
         result = generate_attanger_filename(
             title, creators, year, pattern_config
         )
-        
+
         # Title should be truncated to 20 chars
         self.assertLessEqual(len(result.split(" - ")[-1]), 20)
 
@@ -289,6 +285,95 @@ class TestBibtexParser(unittest.TestCase):
         self.assertIn("paper2", result)
         self.assertEqual(result["paper1"]["fields"]["year"], "2020")
         self.assertEqual(result["paper2"]["fields"]["year"], "2021")
+
+
+class TestRenameTemplateRenderer(unittest.TestCase):
+    """Zotero 7 rename-template rendering (ported from learn_and_teach)."""
+
+    def test_firstcreator_two_authors(self):
+        """2 authors -> 'A and B' (Zotero semantics; the old code produced 'A')."""
+        from wf_common import generate_attanger_filename
+        name = generate_attanger_filename(
+            "Attention Is All You Need",
+            [{"name": "Vaswani, Ashish"}, {"name": "Shazeer, Noam"}],
+            2017,
+            {"rename_template": '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}'},
+        )
+        self.assertEqual(name, "Vaswani and Shazeer - 2017 - Attention Is All You Need")
+
+    def test_firstcreator_three_plus_authors(self):
+        """3+ authors -> 'A et al.'."""
+        from wf_common import generate_attanger_filename
+        name = generate_attanger_filename(
+            "Some Paper",
+            [{"name": "Alpha, A"}, {"name": "Beta, B"}, {"name": "Gamma, C"}],
+            2020,
+            {"rename_template": '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}'},
+        )
+        self.assertEqual(name, "Alpha et al. - 2020 - Some Paper")
+
+    def test_firstcreator_single_author(self):
+        from wf_common import generate_attanger_filename
+        name = generate_attanger_filename(
+            "Solo Work", [{"name": "Smith, John"}], 2021,
+            {"rename_template": '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}'},
+        )
+        self.assertEqual(name, "Smith - 2021 - Solo Work")
+
+    def test_case_snake_template(self):
+        """A user who set case=snake in Zotero gets matching expectations."""
+        from wf_common import render_rename_template
+        out = render_rename_template(
+            {"author": "Smith, John", "year": "2021", "title": "My Great Paper"},
+            '{{ firstCreator suffix="-" }}{{ year suffix="-" }}{{ title case="snake" }}',
+        )
+        self.assertEqual(out, "Smith-2021-my_great_paper")
+
+    def test_conditional_template(self):
+        """{{ if }} blocks resolve; empty variable drops whole statement."""
+        from wf_common import render_rename_template
+        tpl = '{{ if year }}{{ year suffix=" - " }}{{ endif }}{{ title }}'
+        self.assertEqual(render_rename_template({"title": "T", "year": "2020"}, tpl), "2020 - T")
+        self.assertEqual(render_rename_template({"title": "T"}, tpl), "T")
+
+    def test_empty_variable_drops_affixes(self):
+        """Missing year: ' - ' suffix must not leak into the name."""
+        from wf_common import render_rename_template
+        out = render_rename_template(
+            {"author": "Smith, John", "title": "No Year Paper"},
+            '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title }}',
+        )
+        self.assertEqual(out, "Smith - No Year Paper")
+
+    def test_bbt_braces_stripped(self):
+        """Better BibTeX case-protection braces are not part of the title."""
+        entries = parse_bibtex(
+            '@article{k1, title = {{Attention} Is All You Need}, author = {Vaswani, Ashish}, year = {2017}}'
+        )
+        self.assertEqual(entries["k1"]["fields"]["title"], "Attention Is All You Need")
+
+    def test_fuzzy_match_two_author_pdf(self):
+        """End-to-end: a real Zotero-renamed 2-author PDF now fuzzy-matches."""
+        bibtex_entries = {
+            "vaswani2017attention": {
+                "type": "article",
+                "fields": {
+                    "title": "Attention Is All You Need",
+                    "author": "Vaswani, Ashish and Shazeer, Noam",
+                    "year": "2017",
+                },
+            }
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pdf_path = os.path.join(tmpdir, "Vaswani and Shazeer - 2017 - Attention Is All You Need.pdf")
+            Path(pdf_path).touch()
+            result = match_pdf_to_citekey(pdf_path, bibtex_entries, self._cfg())
+            self.assertTrue(result.matched, result.reason)
+            self.assertEqual(result.citekey, "vaswani2017attention")
+
+    @staticmethod
+    def _cfg():
+        return {"rename_template": '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}'}
 
 
 if __name__ == "__main__":

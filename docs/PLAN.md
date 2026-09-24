@@ -82,3 +82,15 @@ source, semver + tagged zip builds. License: GPL.
   every commit; push to origin master covered by commit approval;
   ONBOARDING/CONTENTS updated in the same commit as feature changes;
   agent pauses for confirmation before new components.
+
+
+### 2026-07-23 (later) — Zotero 7 rename-template renderer
+- Matching no longer reconstructs the attanger pattern from decomposed
+  config keys; the full Zotero 7 template string is rendered verbatim
+  (ported from learn_and_teach zotero_sync.py, verified against
+  zotero.org/support/file_renaming). Config: single
+  attanger_pattern.rename_template string; decomposed keys hard-removed.
+- firstCreator semantics fixed (A / A and B / A et al.) — the old code
+  failed on every 2-author paper.
+- BBT case-protection braces stripped in the bib parser; field parser
+  handles nested braces (depth 3).

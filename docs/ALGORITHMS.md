@@ -43,8 +43,15 @@ Precedence (first hit wins), searched recursively under the topic inbox:
 
 1. Bib `file` field: strip Zotero absolute path to basename (handle
    `path.pdf:application/pdf` and `;`-separated lists) → exact filename match.
-2. Attanger pattern: `<FirstCreator> - <Year> - <Title truncate=100>.pdf`
-   (spaces preserved; only filename-illegal chars stripped).
+2. Rename-template reconstruction: the configured Zotero 7 template
+   (`attanger_pattern.rename_template`, default
+   `{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}`)
+   is rendered against the bib entry and compared. The renderer supports
+   the documented syntax (variables, case modes, affixes, truncate/start,
+   replace, if/elseif/else conditionals; an empty variable drops the
+   whole statement including affixes). firstCreator follows Zotero
+   semantics: 1 author -> A, 2 -> A and B, 3+ -> A et al. Spaces are
+   preserved; only filename-illegal chars are stripped.
 3. Fuzzy: citekey substring in filename.
 
 Ambiguity guard: two fuzzy candidates within 0.05 similarity → no auto-match;

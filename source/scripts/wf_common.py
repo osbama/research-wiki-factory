@@ -137,16 +137,20 @@ def parse_bibtex(bibtex_content: str) -> Dict[str, Dict[str, str]]:
         
         fields_str = bibtex_content[start_pos:end_pos]
         
-        # Parse fields
+        # Parse fields (braced values may nest — BBT case protection)
         fields = {}
-        field_pattern = r'(\w+)\s*=\s*(?:"([^"]*)"|{([^}]*)}|(\d+))'
+        field_pattern = (r'(\w+)\s*=\s*(?:"([^"]*)"'
+                         r'|{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)}'
+                         r'|(\d+))')
         for field_match in re.finditer(field_pattern, fields_str):
             field_name = field_match.group(1).lower()
             # Get value from capture groups (group 2=quoted, 3=braced, 4=numeric)
             field_value = (field_match.group(2) or field_match.group(3) or 
                           field_match.group(4) or "")
             if field_value:
-                fields[field_name] = field_value.strip()
+                # Better BibTeX wraps titles in literal braces for case
+                # protection; they are not content
+                fields[field_name] = field_value.strip().replace("{", "").replace("}", "")
         
         entries[citekey] = {
             "type": entry_type,
@@ -202,6 +206,138 @@ def extract_first_creator(authors: List[Dict[str, Any]]) -> str:
     return str(first_author).split()[-1]
 
 
+DEFAULT_RENAME_TEMPLATE = '{{ firstCreator suffix=" - " }}{{ year suffix=" - " }}{{ title truncate="100" }}'
+ILLEGAL_FILENAME_CHARS = re.compile(r'[\\/:*?"<>|]')
+
+
+def _creator_surnames(author_field: str) -> List[str]:
+    """BibTeX 'Last, First and Last2, First2' -> ['Last', 'Last2']."""
+    return [a.split(",")[0].strip() for a in author_field.split(" and ") if a.strip()]
+
+
+def _apply_case(value: str, mode: str) -> str:
+    if mode == "upper":
+        return value.upper()
+    if mode == "lower":
+        return value.lower()
+    if mode == "sentence":
+        return value[:1].upper() + value[1:] if value else value
+    if mode == "title":
+        return value.title()
+    if mode == "hyphen":
+        return re.sub(r"\s+", "-", value.lower())
+    if mode == "snake":
+        return re.sub(r"\s+", "_", value.lower())
+    if mode == "camel":
+        parts = value.split()
+        return parts[0].lower() + "".join(p.title() for p in parts[1:]) if parts else value
+    if mode == "pascal":
+        return "".join(p.title() for p in value.split())
+    return value
+
+
+def render_rename_template(fields: Dict[str, str], template: str, entry_type: str = "") -> str:
+    """
+    Render a Zotero 7 file-renaming template against a BibTeX entry.
+    Supports the documented subset:
+      variables: firstCreator, authors, editors, creators, year, title,
+                 publicationTitle, itemType, attachmentTitle, plus any
+                 BibTeX field by name
+      parameters: suffix, prefix, truncate, start, case, max, join,
+                  replaceFrom, replaceTo, regexOpts
+      conditionals: {{ if var }} ... {{ elseif var }} ... {{ else }} ... {{ endif }}
+    Empty variable -> the whole statement (with prefix/suffix) is dropped.
+    firstCreator: 1 author -> 'A'; 2 -> 'A and B'; 3+ -> 'A et al.'
+    (matches Zotero behaviour; adapted from learn_and_teach zotero_sync.py).
+    """
+    entry_type = entry_type.lstrip("@").lower()
+
+    def var_value(name: str, params: Dict[str, str]) -> str:
+        n = name.strip()
+        low = n.lower()
+        if low in ("authors", "editors", "creators"):
+            names = _creator_surnames(fields.get("author" if low != "editors" else "editor", ""))
+            maxn = int(params.get("max", 0) or 0)
+            join = params.get("join", ", ")
+            if maxn and len(names) > maxn:
+                return join.join(names[:maxn])
+            return join.join(names)
+        if low == "firstcreator":
+            names = _creator_surnames(fields.get("author", "") or fields.get("editor", ""))
+            if not names:
+                return ""
+            if len(names) == 1:
+                return names[0]
+            if len(names) == 2:
+                return f"{names[0]} and {names[1]}"
+            return f"{names[0]} et al."
+        if low == "year":
+            return fields.get("year", "") or fields.get("date", "")[:4]
+        if low == "title":
+            return fields.get("title", "")
+        if low == "publicationtitle":
+            return fields.get("journal", "") or fields.get("journaltitle", "") or fields.get("booktitle", "")
+        if low == "itemtype":
+            return entry_type
+        if low == "attachmenttitle":
+            return ""
+        if low.endswith("count"):  # authorsCount etc.: no data from a bare bib
+            return "0"
+        return fields.get(low, "")
+
+    def render_statement(inner: str) -> str:
+        parts = inner.split(None, 1)
+        if not parts:
+            return ""
+        name = parts[0]
+        params = dict(re.findall(r'(\w+)="([^"]*)"', parts[1] if len(parts) > 1 else ""))
+        value = var_value(name, params)
+        if not value:
+            return ""  # empty variable: whole statement incl. affixes dropped
+        if params.get("replaceFrom"):
+            opts = re.I if "i" in params.get("regexOpts", "") else 0
+            value = re.sub(params["replaceFrom"], params.get("replaceTo", ""), value, count=1, flags=opts)
+        if params.get("start"):
+            value = value[int(params["start"]):]
+        if params.get("truncate"):
+            value = value[:int(params["truncate"])]
+        if params.get("case"):
+            value = _apply_case(value, params["case"])
+        value = value.strip()
+        if not value:
+            return ""
+        return params.get("prefix", "") + value + params.get("suffix", "")
+
+    # Resolve conditionals first (innermost-last simple pass)
+    cond_re = re.compile(
+        r"\{\{\s*if\s+(\w+)\s*\}\}(.*?)(?:\{\{\s*elseif\s+(\w+)\s*\}\}(.*?))?"
+        r"(?:\{\{\s*else\s*\}\}(.*?))?\{\{\s*endif\s*\}\}", re.S)
+    def resolve_cond(m):
+        for var, body in ((m.group(1), m.group(2)), (m.group(3), m.group(4))):
+            if var and var_value(var, {}):
+                return body
+        return m.group(5) or ""
+    prev = None
+    while prev != template:
+        prev = template
+        template = cond_re.sub(resolve_cond, template)
+
+    return re.sub(r"\{\{\s*(.*?)\s*\}\}", lambda m: render_statement(m.group(1)), template)
+
+
+def get_rename_template(pattern_config: Dict[str, Any]) -> str:
+    """Rename template from config; falls back to the Zotero default."""
+    return (pattern_config or {}).get("rename_template") or DEFAULT_RENAME_TEMPLATE
+
+
+def attanger_name(fields: Dict[str, str], template: str, entry_type: str = "") -> str:
+    """Render the rename template and sanitize into a legal filename stem."""
+    name = render_rename_template(fields, template, entry_type)
+    name = ILLEGAL_FILENAME_CHARS.sub("", name)
+    name = re.sub(r"\s+", " ", name).strip()
+    return name
+
+
 def generate_attanger_filename(
     title: str,
     creators: List[Dict[str, Any]],
@@ -209,25 +345,23 @@ def generate_attanger_filename(
     pattern_config: Dict[str, Any]
 ) -> str:
     """
-    Generate filename using Attanger pattern.
-    
-    Pattern: {{ firstCreator suffix=' - ' }}{{ year suffix=' - ' }}{{ title truncate='100' }}
-    Note: Spaces are preserved (not converted to underscores).
+    Generate filename stem by rendering the configured Zotero rename
+    template (config key: rename_template). Spaces are preserved.
+    `creators` is a list of {'name': ...} dicts (S2-style).
     """
-    first_creator = extract_first_creator(creators)
-    suffix1 = pattern_config.get("first_creator_suffix", " - ")
-    suffix2 = pattern_config.get("year_suffix", " - ")
-    truncate_len = pattern_config.get("title_truncate", 100)
-    
-    # Truncate title
-    truncated_title = title[:truncate_len] if len(title) > truncate_len else title
-    
-    # Sanitize for filename (remove special chars but preserve spaces)
-    sanitized_title = re.sub(r'[^\w\s\-]', '', truncated_title)
-    # Do NOT convert spaces to underscores - attanger preserves spaces
-    # sanitized_title = re.sub(r'\s+', '_', sanitized_title)  # REMOVED
-    
-    return f"{first_creator}{suffix1}{year}{suffix2}{sanitized_title}"
+    names = []
+    for c in creators or []:
+        n = c.get("name", "") if isinstance(c, dict) else str(c)
+        if "," in n:
+            names.append(n.split(",")[0].strip())
+        elif n.strip():
+            names.append(n.split()[-1])
+    fields = {
+        "author": " and ".join(names),
+        "year": str(year or ""),
+        "title": title or "",
+    }
+    return attanger_name(fields, get_rename_template(pattern_config))
 
 
 def strip_pdf_filename(filename: str) -> str:
@@ -304,30 +438,30 @@ def match_pdf_to_citekey(
                         reason=f"Exact match with file field: {file_basename}"
                     )
         
-        # STRATEGY 2: Fuzzy match on author + title
-        title = fields.get("title", "")
-        year = fields.get("year", "")
-        author = fields.get("author", "Unknown").split(" and ")[0].split(",")[0].strip()
-        
-        # Normalize both for comparison
+        # STRATEGY 2: Fuzzy match via rendered rename template
         pdf_normalized = normalize_text_for_matching(pdf_basename)
-        
-        # Build expected pattern (with SPACES preserved, not underscores)
-        first_creator = author
-        suffix1 = pattern_config.get("first_creator_suffix", " - ")
-        suffix2 = pattern_config.get("year_suffix", " - ")
-        truncate_len = pattern_config.get("title_truncate", 100)
-        
-        truncated_title = title[:truncate_len] if len(title) > truncate_len else title
-        # Preserve spaces in attanger pattern
-        expected_name = f"{first_creator}{suffix1}{year}{suffix2}{truncated_title}"
+
+        # Expected name = the template Zotero/attanger would have produced
+        expected_name = attanger_name(fields, get_rename_template(pattern_config),
+                                      entry.get("type", ""))
         expected_normalized = normalize_text_for_matching(expected_name)
-        
+
         # Calculate similarity
         similarity = difflib.SequenceMatcher(None, pdf_normalized, expected_normalized).ratio()
-        
-        # Also check author-year prefix match
-        author_year_match = pdf_normalized.startswith(normalize_text_for_matching(f"{first_creator}{suffix1}{year}"))
+
+        # Also check author-year prefix match (firstCreator + year stem)
+        year = fields.get("year", "") or fields.get("date", "")[:4]
+        fc_names = _creator_surnames(fields.get("author", "") or fields.get("editor", ""))
+        if len(fc_names) == 1:
+            first_creator = fc_names[0]
+        elif len(fc_names) == 2:
+            first_creator = f"{fc_names[0]} and {fc_names[1]}"
+        elif len(fc_names) > 2:
+            first_creator = f"{fc_names[0]} et al."
+        else:
+            first_creator = ""
+        author_year_match = bool(first_creator) and pdf_normalized.startswith(
+            normalize_text_for_matching(f"{first_creator} - {year}"))
         
         if similarity >= 0.85 or author_year_match:
             candidates.append((citekey, similarity, f"Fuzzy match (similarity: {similarity:.2f})"))
