@@ -72,3 +72,13 @@ source, semver + tagged zip builds. License: GPL.
   rule (newer local state aborts restore; --force overrides), traversal
   and secret-pattern rejection. Live-tested with an 11-case battery
   including crafted evil archives.
+
+
+### 2026-07-23 (hand-off) — Agent hand-off instrumentation adopted
+- docs/RULES.md, docs/ONBOARDING.md, docs/CONTENTS.md added, modeled on
+  the learn_and_teach repo conventions: standalone binding rules,
+  paste-ready onboarding prompt, repo map. New rules adopted beyond the
+  original R1-R7: no emojis anywhere; secrets scan before AND after
+  every commit; push to origin master covered by commit approval;
+  ONBOARDING/CONTENTS updated in the same commit as feature changes;
+  agent pauses for confirmation before new components.
